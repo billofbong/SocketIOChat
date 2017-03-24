@@ -10,12 +10,20 @@
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font: 13px Helvetica, Arial; }
-        form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-        form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-        form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+        .form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+        .form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+        .form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
         #messages { list-style-type: none; margin: 0; padding: 0; }
         #messages li { padding: 5px 10px;}
         #messages li:nth-child(odd) { background: #eee; }
+        .username {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            right: 0;
+        }
+        .messages{
+            height: calc(1vh - 26px); }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
@@ -23,22 +31,24 @@
         $(document).ready(function () {
             var socket = io();
             var typing = false;
+            var name = "anon";
 
-            function onEnter() {
-                typing = false;
-            }
-
-            $('form').submit(function () {
-                if($('#m').val() != '')
+            $('.form').submit(function () {
+                var $mval = $('#m').val();
+                if($mval != '')
                 {
-                    socket.emit('chat message', $('#m').val());
-                    $('#m').val('');
+                    socket.emit('chat message', {
+                        username: name,
+                        message: $mval
+                    });
+                    $mval;
                 }
+                $('#m').val('');
                 return false;
             });
 
-            socket.on('chat message', function (msg) {
-                $("#messages").append($('<li>').text(msg));
+            socket.on('chat message', function (data) {
+                $("#messages").append($('<li>').text(data.username + ": " + data.message));
             });
 
             $('#m').on("input propertychange paste", function () {
@@ -66,14 +76,29 @@
                 typing = false;
                 socket.emit('typing', typing);
             });
+            $('#un').submit(function (e) {
+                if($("#u").val() != '')
+                {
+                    name = $("#u").val();
+                    $("#u").val('');
+                };
+                e.preventDefault();
+            });
         });
     </script>
 </head>
 <body>
-<ul id="messages" onsubmit=""></ul>
-<div id = "type" style=""></div>
-<form action="" onsubmit="return onSubmit();">
-    <input id="m" autocomplete="off"><button>Send</button>
-</form>
+<div class="username">
+    <form action="" id="un">
+        <input id="u"><button>Set Username</button>
+    </form>
+</div>
+<div class="messages">
+    <ul id="messages" onsubmit=""></ul>
+    <div id = "type" style=""></div>
+</div>
+    <form action="" class="form">
+        <input id="m" autocomplete="off"><button>Send</button>
+    </form>
 </body>
 </html>

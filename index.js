@@ -11,19 +11,20 @@ io.on('connection', function (socket) {
     socket.on('disconnect', function () {
         console.log('a user disconnected');
     });
-    socket.on('chat message', function(msg){
-        io.emit('chat message', msg);
+    socket.on('chat message', function(data){
+        io.emit('chat message', {
+            message: data.message,
+            username: data.username
+        });
     });
     socket.on('typing', function (typing) {
         if(typing)
         {
             io.emit('typing');
-            console.log("he type");
         }
         else
         {
             io.emit('nottyping');
-            console.log("he stop type");
         }
     })
 });
